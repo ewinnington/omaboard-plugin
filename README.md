@@ -40,17 +40,15 @@ Install the app first, pinned to the reviewed Omaboard commit (detached
 HEAD, not `master`):
 
 ```sh
-OMABOARD_COMMIT=044a60736536222a8393c6d6db1e82fb2360a0f8
-git clone https://github.com/ewinnington/omaboard.git
-cd omaboard
-git checkout --detach "$OMABOARD_COMMIT"
-./bin/build
-mkdir -p ~/.local/bin
-cp -f build/omaboard ~/.local/bin/omaboard
-omaboard --version     # expect 0.2.0
+git clone https://github.com/ewinnington/omaboard.git \
+  && git -C omaboard checkout --detach 044a60736536222a8393c6d6db1e82fb2360a0f8 \
+  && omaboard/bin/build \
+  && mkdir -p ~/.local/bin \
+  && cp -f omaboard/build/omaboard ~/.local/bin/omaboard \
+  && omaboard --version
 ```
 
-Skip the clone if `omaboard --version` is already 0.2.0 or newer. Older
+Skip that clone if `omaboard --version` is already 0.2.0 or newer. Older
 Omaboard builds have no `--open` / `--new` flags, so the plugin cannot jump
 into a board.
 
