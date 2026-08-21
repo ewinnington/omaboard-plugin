@@ -36,18 +36,23 @@ the same gallery as a summoned overlay (useful for a keybind).
 - [Omaboard](https://github.com/ewinnington/omaboard) **0.2.0 or later**, on
   `PATH` or at `~/.local/bin/omaboard`
 
-Install the app first:
+Install the app first, pinned to the reviewed Omaboard commit (detached
+HEAD, not `master`):
 
 ```sh
+OMABOARD_COMMIT=044a60736536222a8393c6d6db1e82fb2360a0f8
 git clone https://github.com/ewinnington/omaboard.git
 cd omaboard
-./bin/install          # Arch package via makepkg
-# or: ./bin/build && cp build/omaboard ~/.local/bin/omaboard
-omaboard --version     # expect 0.2.0 or newer
+git checkout --detach "$OMABOARD_COMMIT"
+./bin/build
+mkdir -p ~/.local/bin
+cp -f build/omaboard ~/.local/bin/omaboard
+omaboard --version     # expect 0.2.0
 ```
 
-Older Omaboard builds have no `--open` / `--new` flags, so the plugin cannot
-jump into a board.
+Skip the clone if `omaboard --version` is already 0.2.0 or newer. Older
+Omaboard builds have no `--open` / `--new` flags, so the plugin cannot jump
+into a board.
 
 ## Install
 
@@ -149,7 +154,8 @@ when enabled. Review the source before installing.
   `~/.local/share/omaboard/thumbs/*.png`.
 - **Executes** `omaboard` (or `~/.local/bin/omaboard`) with `--new` or
   `--open <id>`. Board ids with path separators are rejected.
-- **Does not** use the network, sudo, install hooks, or write Omaboard data.
+- **Does not** open network connections, request elevated privileges, run
+  install hooks, or write Omaboard data.
 - **Does not** change Hyprland config, `shell.json` layout beyond the normal
   `omarchy plugin enable` bar placement, or other plugins.
 
