@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.ewinnington.omaboard",
+  "name": "Omaboard",
+  "version": "1.0.0",
+  "author": "Eric Winnington",
+  "license": "MIT",
+  "description": "Quick-access Omaboard menu with board previews, jump-in, and new board.",
+  "kinds": ["bar-widget", "menu"],
+  "keepLoaded": true,
+  "entryPoints": {
+    "menu": "Menu.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Omaboard",
+    "description": "Open the Omaboard gallery menu",
+    "category": "Productivity",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}
