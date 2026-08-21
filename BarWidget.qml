@@ -62,12 +62,21 @@ BarWidget {
     }
   }
 
+  readonly property color iconColor: bar ? bar.barForeground : "#eeeeee"
+
   BarIconButton {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: "\uf303"
     tooltipText: "Omaboard"
+    iconComponent: Component {
+      Item {
+        PenBoardIcon {
+          anchors.fill: parent
+          color: root.iconColor
+        }
+      }
+    }
     onPressed: function(buttonCode) {
       if (buttonCode === Qt.LeftButton)
         root.toggle()

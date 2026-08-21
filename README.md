@@ -129,7 +129,7 @@ alone.
 
 ```sh
 omarchy plugin validate .
-qmllint -I "$OMARCHY_PATH/shell" Menu.qml BarWidget.qml Panel.qml BoardGallery.qml
+qmllint -I "$OMARCHY_PATH/shell" Menu.qml BarWidget.qml Panel.qml BoardGallery.qml PenBoardIcon.qml
 ```
 
 ## Layout
@@ -137,7 +137,8 @@ qmllint -I "$OMARCHY_PATH/shell" Menu.qml BarWidget.qml Panel.qml BoardGallery.q
 | File | Role |
 | --- | --- |
 | `manifest.json` | Plugin id, `bar-widget` + `menu` kinds, default section `left` |
-| `BarWidget.qml` | Bar icon; loads the anchored picker |
+| `BarWidget.qml` | Bar button; loads the anchored picker |
+| `PenBoardIcon.qml` | Pen-on-whiteboard mark used in the bar slot |
 | `Panel.qml` | Keyboard panel attached to the bar section you chose |
 | `Menu.qml` | Fullscreen overlay used by `omarchy-shell shell summon/toggle` |
 | `BoardGallery.qml` | Shared thumbnail grid, filter, and `omaboard` launch |
