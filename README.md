@@ -147,7 +147,9 @@ qmllint -I "$OMARCHY_PATH/shell" Menu.qml BarWidget.qml Panel.qml BoardGallery.q
 ## Security
 
 This plugin runs unsandboxed inside the long-lived `omarchy-shell` process
-when enabled. Review the source before installing.
+when enabled. Review the source before installing. The threat model, marketplace
+findings, bounds, and residual risk are in
+[docs/security-review.md](docs/security-review.md).
 
 - **Reads** `~/.local/share/omaboard/index.json` and
   `~/.local/share/omaboard/thumbs/*.png`. The index is read with a 1 MiB
