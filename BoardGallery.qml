@@ -163,7 +163,7 @@ Item {
   }
 
   function launchRow(row) {
-    if (!row || !root.omaboardAvailable || !root.omaboardPath)
+    if (!row || !root.omaboardAvailable || !BoardsModel.isSafeOmaboardPath(root.omaboardPath, root.home))
       return
     if (row.kind === "new")
       Quickshell.execDetached([root.omaboardPath, "--new"])
@@ -258,13 +258,14 @@ Item {
 
   Process {
     id: whichProc
-    command: ["omaboard", "--version"]
+    command: ["which", "omaboard"]
     stdout: StdioCollector {
       id: whichOut
       waitForEnd: true
     }
     onExited: function(exitCode) {
-      if (exitCode === 0) {
+      var found = String(whichOut.text || "").trim()
+      if (exitCode === 0 && found.length > 0 && found.length < 512 && found.indexOf("\n") === -1) {
         root.omaboardPath = "omaboard"
         root.omaboardAvailable = true
         if (root.opened)
@@ -284,10 +285,7 @@ Item {
 
   Process {
     id: localWhich
-    command: [String(root.home || "") + "/.local/bin/omaboard", "--version"]
-    stdout: StdioCollector {
-      waitForEnd: true
-    }
+    command: ["test", "-x", String(root.home || "") + "/.local/bin/omaboard"]
     onExited: function(exitCode) {
       if (exitCode === 0 && root.home) {
         root.omaboardPath = root.home + "/.local/bin/omaboard"
@@ -385,6 +383,8 @@ Item {
                   fillMode: Image.PreserveAspectCrop
                   asynchronous: true
                   cache: false
+                  sourceSize.width: Math.round(width)
+                  sourceSize.height: Math.round(height)
                 }
 
                 Text {
@@ -483,7 +483,7 @@ Item {
         Text {
           width: parent.width
           visible: !root.omaboardAvailable
-          text: "Install omaboard 0.2.2 or later, then open this menu again."
+          text: "Install omaboard 0.2.3 or later, then open this menu again."
           textFormat: Text.PlainText
           color: root.foreground
           opacity: 0.7

@@ -1,6 +1,6 @@
 var TITLE_MAX = 120
 var FILTER_MAX = 120
-var MAX_INDEX_BYTES = 262144
+var MAX_INDEX_BYTES = 1048576
 var MAX_BOARDS = 256
 var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 var ASSET = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$/i
@@ -28,6 +28,14 @@ function isSafeBoardId(id) {
 
 function isSafeAssetName(name) {
   return ASSET.test(String(name || ""))
+}
+
+function isSafeOmaboardPath(path, home) {
+  var p = String(path || "")
+  if (p === "omaboard")
+    return true
+  var local = String(home || "") + "/.local/bin/omaboard"
+  return p.length > 0 && p === local
 }
 
 function stripMarkup(value) {
