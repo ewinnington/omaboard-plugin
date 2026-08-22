@@ -83,7 +83,7 @@ Item {
       displayModel.append({
         kind: "board",
         boardId: board.id,
-        title: board.title,
+        title: BoardsModel.sanitizeTitle(board.title),
         modifiedText: BoardsModel.relativeTime(board.modified),
         thumbnail: BoardsModel.thumbUrl(Util.fileUrl, root.dataRoot, board.id, board.modified)
       })
@@ -160,7 +160,7 @@ Item {
       return
     if (row.kind === "new")
       Quickshell.execDetached([root.omaboardPath, "--new"])
-    else if (row.kind === "board" && row.boardId)
+    else if (row.kind === "board" && BoardsModel.isSafeBoardId(row.boardId))
       Quickshell.execDetached([root.omaboardPath, "--open", row.boardId])
     else
       return
@@ -236,14 +236,44 @@ Item {
 
   Process {
     id: whichProc
-    command: ["bash", "-lc", "command -v omaboard 2>/dev/null || { [ -x \"$HOME/.local/bin/omaboard\" ] && printf '%s\\n' \"$HOME/.local/bin/omaboard\"; }"]
+    command: ["omaboard", "--version"]
     stdout: StdioCollector {
       id: whichOut
       waitForEnd: true
     }
     onExited: function(exitCode) {
-      root.omaboardPath = String(whichOut.text || "").trim()
-      root.omaboardAvailable = root.omaboardPath.length > 0
+      if (exitCode === 0) {
+        root.omaboardPath = "omaboard"
+        root.omaboardAvailable = true
+        if (root.opened)
+          root.rebuildDisplay()
+        return
+      }
+      if (root.home) {
+        localWhich.running = true
+        return
+      }
+      root.omaboardPath = ""
+      root.omaboardAvailable = false
+      if (root.opened)
+        root.rebuildDisplay()
+    }
+  }
+
+  Process {
+    id: localWhich
+    command: [String(root.home || "") + "/.local/bin/omaboard", "--version"]
+    stdout: StdioCollector {
+      waitForEnd: true
+    }
+    onExited: function(exitCode) {
+      if (exitCode === 0 && root.home) {
+        root.omaboardPath = root.home + "/.local/bin/omaboard"
+        root.omaboardAvailable = true
+      } else if (root.omaboardPath !== "omaboard") {
+        root.omaboardPath = ""
+        root.omaboardAvailable = false
+      }
       if (root.opened)
         root.rebuildDisplay()
     }
@@ -266,6 +296,7 @@ Item {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
         text: root.filterText || "Omaboard"
+        textFormat: Text.PlainText
         color: root.foreground
         opacity: root.filterText ? 1 : 0.9
         font.family: root.fontFamily
@@ -324,8 +355,8 @@ Item {
 
                 Image {
                   anchors.fill: parent
-                  visible: !isNew && thumbnail.length > 0
-                  source: thumbnail
+                  visible: !isNew && thumbnail.indexOf("file:") === 0
+                  source: thumbnail.indexOf("file:") === 0 ? thumbnail : ""
                   fillMode: Image.PreserveAspectCrop
                   asynchronous: true
                   cache: false
@@ -335,6 +366,7 @@ Item {
                   anchors.centerIn: parent
                   visible: isNew
                   text: "+"
+                  textFormat: Text.PlainText
                   color: root.selectedText
                   font.family: root.fontFamily
                   font.pixelSize: Style.font.displayLarge
@@ -356,6 +388,7 @@ Item {
                   Text {
                     width: parent.width
                     text: title
+                    textFormat: Text.PlainText
                     color: hasCursor || isNew ? root.selectedText : root.foreground
                     font.family: root.fontFamily
                     font.pixelSize: Style.font.body
@@ -366,6 +399,7 @@ Item {
                   Text {
                     width: parent.width
                     text: modifiedText
+                    textFormat: Text.PlainText
                     color: root.foreground
                     opacity: 0.62
                     font.family: root.fontFamily
@@ -400,6 +434,7 @@ Item {
         Text {
           width: parent.width
           text: root.omaboardAvailable ? "󰈉" : "󰏪"
+          textFormat: Text.PlainText
           color: root.selectedText
           opacity: 0.8
           font.family: root.fontFamily
@@ -412,6 +447,7 @@ Item {
           text: !root.omaboardAvailable
             ? "Omaboard is not installed"
             : (root.filterText ? "No boards match “" + root.filterText + "”" : "No boards yet")
+          textFormat: Text.PlainText
           color: root.foreground
           font.family: root.fontFamily
           font.pixelSize: Style.font.title
@@ -422,7 +458,8 @@ Item {
         Text {
           width: parent.width
           visible: !root.omaboardAvailable
-          text: "Install omaboard 0.2.0 or later, then open this menu again."
+          text: "Install omaboard 0.2.2 or later, then open this menu again."
+          textFormat: Text.PlainText
           color: root.foreground
           opacity: 0.7
           font.family: root.fontFamily

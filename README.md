@@ -12,7 +12,7 @@ Plugin id: `io.github.ewinnington.omaboard`
 
 ## How it integrates
 
-Omaboard 0.2.0 or later owns the boards. This plugin is a thin Omarchy shell
+Omaboard 0.2.2 or later owns the boards. This plugin is a thin Omarchy shell
 plugin (`bar-widget` + `menu`) that:
 
 1. Reads `~/.local/share/omaboard/index.json` for titles and ids.
@@ -33,7 +33,7 @@ the same gallery as a summoned overlay (useful for a keybind).
 ## Requires
 
 - [Omarchy](https://omarchy.org/) Quattro (`omarchy-shell`)
-- [Omaboard](https://github.com/ewinnington/omaboard) **0.2.0 or later**, on
+- [Omaboard](https://github.com/ewinnington/omaboard) **0.2.2 or later**, on
   `PATH` or at `~/.local/bin/omaboard`
 
 Install the app first, pinned to the reviewed Omaboard commit (detached
@@ -41,14 +41,14 @@ HEAD, not `master`):
 
 ```sh
 git clone https://github.com/ewinnington/omaboard.git \
-  && git -C omaboard checkout --detach 044a60736536222a8393c6d6db1e82fb2360a0f8 \
+  && git -C omaboard checkout --detach dabd73a52134a557ffa86e5e4c82825a8097375c \
   && omaboard/bin/build \
   && mkdir -p ~/.local/bin \
   && cp -f omaboard/build/omaboard ~/.local/bin/omaboard \
   && omaboard --version
 ```
 
-Skip that clone if `omaboard --version` is already 0.2.0 or newer. Older
+Skip that clone if `omaboard --version` is already 0.2.2 or newer. Older
 Omaboard builds have no `--open` / `--new` flags, so the plugin cannot jump
 into a board.
 
@@ -114,7 +114,7 @@ omarchy plugin update io.github.ewinnington.omaboard
 ```
 
 Omarchy shows a diff and fast-forwards the git checkout. After updating
-Omaboard itself, confirm `omaboard --version` is still 0.2.0 or newer.
+Omaboard itself, confirm `omaboard --version` is still 0.2.2 or newer.
 
 ## Remove
 
@@ -151,8 +151,12 @@ when enabled. Review the source before installing.
 
 - **Reads** `~/.local/share/omaboard/index.json` and
   `~/.local/share/omaboard/thumbs/*.png`.
+- **Sanitizes** board titles and other metadata before display: markup, control
+  characters, and bidi overrides are stripped, and every `Text` sink uses
+  `Text.PlainText` so AutoText cannot load rich-text resources in the shell.
 - **Executes** `omaboard` (or `~/.local/bin/omaboard`) with `--new` or
-  `--open <id>`. Board ids with path separators are rejected.
+  `--open <id>`. Board ids must be UUIDs; path separators and other names are
+  rejected.
 - **Does not** open network connections, request elevated privileges, run
   install hooks, or write Omaboard data.
 - **Does not** change Hyprland config, `shell.json` layout beyond the normal
