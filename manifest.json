@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.ewinnington.omaboard",
   "name": "Omaboard",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "author": "Eric Winnington",
   "license": "MIT",
   "description": "Quick-access Omaboard menu with board previews, jump-in, and new board.",

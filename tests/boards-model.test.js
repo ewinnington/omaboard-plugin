@@ -41,4 +41,20 @@ const thumb = context.thumbUrl(null, "/tmp/omaboard", idA, "2026-08-21T13:18:31.
 if (thumb.indexOf("file:///tmp/omaboard/thumbs/" + idA + ".png?t=") !== 0)
   throw new Error("thumb url " + thumb)
 
+if (context.parseIndex("x".repeat(context.MAX_INDEX_BYTES + 1)).length !== 0)
+  throw new Error("oversized index")
+if (context.parseIndex('{"boards":{"id":"' + idA + '"}}').length !== 0)
+  throw new Error("non-array boards")
+
+const many = []
+for (let i = 0; i < context.MAX_BOARDS + 40; i++) {
+  const hex = i.toString(16).padStart(12, "0")
+  many.push(`{"id":"aaaaaaaa-1111-4111-8111-${hex}","title":"b${i}"}`)
+}
+const capped = context.parseIndex(`{"boards":[${many.join(",")}]}`)
+if (capped.length !== context.MAX_BOARDS)
+  throw new Error("board cap, got " + capped.length)
+if (context.sanitizeFilter("<img src=x>" + "a".repeat(200)).length > context.FILTER_MAX)
+  throw new Error("filter cap")
+
 console.log("ok")

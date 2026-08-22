@@ -150,7 +150,8 @@ This plugin runs unsandboxed inside the long-lived `omarchy-shell` process
 when enabled. Review the source before installing.
 
 - **Reads** `~/.local/share/omaboard/index.json` and
-  `~/.local/share/omaboard/thumbs/*.png`.
+  `~/.local/share/omaboard/thumbs/*.png`. The index is read with a 256 KiB
+  byte ceiling (`head -c`) before JSON parsing; at most 256 boards are kept.
 - **Sanitizes** board titles and other metadata before display: markup, control
   characters, and bidi overrides are stripped, and every `Text` sink uses
   `Text.PlainText` so AutoText cannot load rich-text resources in the shell.

@@ -48,8 +48,14 @@ Item {
     root.cursorActive = true
     root.disarmPointer()
     whichProc.running = true
-    indexFile.reload()
+    root.readIndexBounded()
     root.rebuildDisplay()
+  }
+
+  function readIndexBounded() {
+    if (indexReader.running)
+      indexReader.running = false
+    indexReader.running = true
   }
 
   function disarmPointer() {
@@ -78,7 +84,8 @@ Item {
     }
 
     var matches = BoardsModel.filterBoards(root.boards, root.filterText)
-    for (var i = 0; i < matches.length; i++) {
+    var limit = Math.min(matches.length, BoardsModel.MAX_BOARDS)
+    for (var i = 0; i < limit; i++) {
       var board = matches[i]
       displayModel.append({
         kind: "board",
@@ -135,7 +142,7 @@ Item {
   }
 
   function setFilter(nextFilter) {
-    root.filterText = nextFilter
+    root.filterText = BoardsModel.sanitizeFilter(nextFilter)
     root.selectedIndex = 0
     root.cursorActive = true
     root.disarmPointer()
@@ -225,13 +232,28 @@ Item {
   }
 
   FileView {
-    id: indexFile
+    id: indexWatch
     path: root.indexFilePath
+    preload: false
     watchChanges: true
     printErrors: false
-    onLoaded: root.loadBoards(text())
-    onLoadFailed: root.loadBoards("{}")
-    onFileChanged: reload()
+    onFileChanged: root.readIndexBounded()
+  }
+
+  Process {
+    id: indexReader
+    command: ["head", "-c", String(BoardsModel.MAX_INDEX_BYTES + 1), "--", root.indexFilePath]
+    stdout: StdioCollector {
+      id: indexOut
+      waitForEnd: true
+    }
+    onExited: function(exitCode) {
+      var raw = String(indexOut.text || "")
+      if (exitCode !== 0 || raw.length > BoardsModel.MAX_INDEX_BYTES)
+        root.loadBoards("{}")
+      else
+        root.loadBoards(raw)
+    }
   }
 
   Process {
@@ -279,7 +301,10 @@ Item {
     }
   }
 
-  Component.onCompleted: whichProc.running = true
+  Component.onCompleted: {
+    whichProc.running = true
+    root.readIndexBounded()
+  }
 
   Column {
     anchors.fill: parent

@@ -1,4 +1,7 @@
 var TITLE_MAX = 120
+var FILTER_MAX = 120
+var MAX_INDEX_BYTES = 262144
+var MAX_BOARDS = 256
 var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 var ASSET = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$/i
 
@@ -75,13 +78,18 @@ function sanitizeTitle(value) {
 }
 
 function parseIndex(raw) {
+  var text = String(raw || "")
+  if (text.length > MAX_INDEX_BYTES)
+    return []
   var out = []
   try {
-    var data = JSON.parse(raw || "{}")
-    var boards = data && data.boards ? data.boards : []
+    var data = JSON.parse(text || "{}")
+    var boards = data && Array.isArray(data.boards) ? data.boards : []
     for (var i = 0; i < boards.length; i++) {
+      if (out.length >= MAX_BOARDS)
+        break
       var board = boards[i]
-      if (!board || !board.id)
+      if (!board || typeof board !== "object" || !board.id)
         continue
       var id = String(board.id)
       if (!isSafeBoardId(id))
@@ -97,6 +105,14 @@ function parseIndex(raw) {
     return []
   }
   return out
+}
+
+function sanitizeFilter(value) {
+  var s = stripControls(String(value || ""), false)
+  s = s.replace(/[<>]/g, "")
+  if (s.length > FILTER_MAX)
+    s = s.slice(0, FILTER_MAX)
+  return s
 }
 
 function filterBoards(boards, query) {
