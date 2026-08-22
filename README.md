@@ -8,6 +8,9 @@ filter by name, jump straight into one, or create a **New board**. The plugin
 does not draw, save, or reimplement the canvas. It only reads Omaboard's
 gallery and launches the `omaboard` app.
 
+<img src="img/omaBoard-intro.png" alt="Omaboard gallery of local boards" />
+<img src="img/omaBoard-draw.png" alt="Omaboard canvas with shapes, notes, and ink" />
+
 Plugin id: `io.github.ewinnington.omaboard`
 
 ## How it integrates
