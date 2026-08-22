@@ -32,10 +32,12 @@ Item {
   property var boards: []
   property string omaboardPath: ""
   property bool omaboardAvailable: false
+  property int probeIndex: 0
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string dataRoot: BoardsModel.dataRoot(home, Quickshell.env("XDG_DATA_HOME"))
   readonly property string indexFilePath: BoardsModel.indexPath(dataRoot)
+  readonly property var omaboardCandidates: BoardsModel.allowedOmaboardPaths(home)
 
   implicitWidth: columns * (tileWidth + tileGap)
   implicitHeight: headerHeight + contentSpacing + gridHeight
@@ -47,12 +49,24 @@ Item {
     root.selectedIndex = 0
     root.cursorActive = true
     root.disarmPointer()
-    whichProc.running = true
+    root.startBinaryProbe()
     root.readIndexBounded()
     root.rebuildDisplay()
   }
 
+  function startBinaryProbe() {
+    root.probeIndex = 0
+    root.omaboardPath = ""
+    root.omaboardAvailable = false
+    probe.running = false
+    probe.running = true
+  }
+
   function readIndexBounded() {
+    if (!root.indexFilePath) {
+      root.loadBoards("{}")
+      return
+    }
     if (indexReader.running)
       indexReader.running = false
     indexReader.running = true
@@ -242,14 +256,16 @@ Item {
 
   Process {
     id: indexReader
-    command: ["head", "-c", String(BoardsModel.MAX_INDEX_BYTES + 1), "--", root.indexFilePath]
+    command: root.indexFilePath
+      ? ["/usr/bin/head", "-c", String(BoardsModel.MAX_INDEX_BYTES + 1), "--", root.indexFilePath]
+      : ["/usr/bin/true"]
     stdout: StdioCollector {
       id: indexOut
       waitForEnd: true
     }
     onExited: function(exitCode) {
       var raw = String(indexOut.text || "")
-      if (exitCode !== 0 || raw.length > BoardsModel.MAX_INDEX_BYTES)
+      if (!root.indexFilePath || exitCode !== 0 || raw.length > BoardsModel.MAX_INDEX_BYTES)
         root.loadBoards("{}")
       else
         root.loadBoards(raw)
@@ -257,23 +273,20 @@ Item {
   }
 
   Process {
-    id: whichProc
-    command: ["which", "omaboard"]
-    stdout: StdioCollector {
-      id: whichOut
-      waitForEnd: true
-    }
+    id: probe
+    command: ["/usr/bin/test", "-x", root.omaboardCandidates[root.probeIndex] || "/usr/bin/false"]
     onExited: function(exitCode) {
-      var found = String(whichOut.text || "").trim()
-      if (exitCode === 0 && found.length > 0 && found.length < 512 && found.indexOf("\n") === -1) {
-        root.omaboardPath = "omaboard"
+      var candidate = root.omaboardCandidates[root.probeIndex]
+      if (exitCode === 0 && BoardsModel.isSafeOmaboardPath(candidate, root.home)) {
+        root.omaboardPath = candidate
         root.omaboardAvailable = true
         if (root.opened)
           root.rebuildDisplay()
         return
       }
-      if (root.home) {
-        localWhich.running = true
+      if (root.probeIndex + 1 < root.omaboardCandidates.length) {
+        root.probeIndex = root.probeIndex + 1
+        probe.running = true
         return
       }
       root.omaboardPath = ""
@@ -283,24 +296,8 @@ Item {
     }
   }
 
-  Process {
-    id: localWhich
-    command: ["test", "-x", String(root.home || "") + "/.local/bin/omaboard"]
-    onExited: function(exitCode) {
-      if (exitCode === 0 && root.home) {
-        root.omaboardPath = root.home + "/.local/bin/omaboard"
-        root.omaboardAvailable = true
-      } else if (root.omaboardPath !== "omaboard") {
-        root.omaboardPath = ""
-        root.omaboardAvailable = false
-      }
-      if (root.opened)
-        root.rebuildDisplay()
-    }
-  }
-
   Component.onCompleted: {
-    whichProc.running = true
+    root.startBinaryProbe()
     root.readIndexBounded()
   }
 
@@ -378,8 +375,8 @@ Item {
 
                 Image {
                   anchors.fill: parent
-                  visible: !isNew && thumbnail.indexOf("file:") === 0
-                  source: thumbnail.indexOf("file:") === 0 ? thumbnail : ""
+                  visible: !isNew && thumbnail.indexOf("file://") === 0
+                  source: thumbnail.indexOf("file://") === 0 ? thumbnail : ""
                   fillMode: Image.PreserveAspectCrop
                   asynchronous: true
                   cache: false

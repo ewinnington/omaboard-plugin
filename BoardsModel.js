@@ -2,24 +2,44 @@ var TITLE_MAX = 120
 var FILTER_MAX = 120
 var MAX_INDEX_BYTES = 1048576
 var MAX_BOARDS = 256
+var MAX_TIME_CHARS = 40
 var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 var ASSET = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$/i
 
+function isSafeAbsPath(path) {
+  var p = String(path || "")
+  if (!p || p.charAt(0) !== "/" || p.length > 4096)
+    return false
+  if (p.indexOf("\0") !== -1)
+    return false
+  var parts = p.split("/")
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i] === "." || parts[i] === "..")
+      return false
+  }
+  return true
+}
+
 function dataRoot(home, xdgDataHome) {
   var xdg = String(xdgDataHome || "")
-  if (xdg)
+  if (xdg && isSafeAbsPath(xdg))
     return xdg.replace(/\/$/, "") + "/omaboard"
-  return String(home || "") + "/.local/share/omaboard"
+  var h = String(home || "")
+  if (isSafeAbsPath(h))
+    return h + "/.local/share/omaboard"
+  return ""
 }
 
 function indexPath(root) {
-  return String(root || "") + "/index.json"
+  if (!isSafeAbsPath(root))
+    return ""
+  return root + "/index.json"
 }
 
 function thumbPath(root, id) {
-  if (!isSafeBoardId(id))
+  if (!isSafeAbsPath(root) || !isSafeBoardId(id))
     return ""
-  return String(root || "") + "/thumbs/" + String(id) + ".png"
+  return root + "/thumbs/" + String(id) + ".png"
 }
 
 function isSafeBoardId(id) {
@@ -30,12 +50,21 @@ function isSafeAssetName(name) {
   return ASSET.test(String(name || ""))
 }
 
+function allowedOmaboardPaths(home) {
+  var out = ["/usr/bin/omaboard", "/usr/local/bin/omaboard"]
+  if (isSafeAbsPath(home))
+    out.push(home + "/.local/bin/omaboard")
+  return out
+}
+
 function isSafeOmaboardPath(path, home) {
   var p = String(path || "")
-  if (p === "omaboard")
-    return true
-  var local = String(home || "") + "/.local/bin/omaboard"
-  return p.length > 0 && p === local
+  var allowed = allowedOmaboardPaths(home)
+  for (var i = 0; i < allowed.length; i++) {
+    if (p === allowed[i])
+      return true
+  }
+  return false
 }
 
 function stripMarkup(value) {
@@ -97,7 +126,7 @@ function parseIndex(raw) {
       if (out.length >= MAX_BOARDS)
         break
       var board = boards[i]
-      if (!board || typeof board !== "object" || !board.id)
+      if (!board || typeof board !== "object" || Array.isArray(board) || !board.id)
         continue
       var id = String(board.id)
       if (!isSafeBoardId(id))
@@ -105,8 +134,8 @@ function parseIndex(raw) {
       out.push({
         id: id,
         title: sanitizeTitle(board.title),
-        modified: String(board.modified || ""),
-        created: String(board.created || "")
+        modified: String(board.modified || "").slice(0, MAX_TIME_CHARS),
+        created: String(board.created || "").slice(0, MAX_TIME_CHARS)
       })
     }
   } catch (e) {
@@ -145,9 +174,10 @@ function showNewBoard(query) {
 }
 
 function relativeTime(iso, nowMs) {
-  if (!iso)
+  var stamp = String(iso || "")
+  if (!stamp || stamp.length > MAX_TIME_CHARS)
     return "Unknown"
-  var then = Date.parse(iso)
+  var then = Date.parse(stamp)
   if (!isFinite(then))
     return "Unknown"
   var now = isFinite(nowMs) ? nowMs : Date.now()
@@ -166,17 +196,19 @@ function relativeTime(iso, nowMs) {
 }
 
 function thumbUrl(fileUrlFn, root, id, modified) {
-  if (!isSafeBoardId(id))
-    return ""
   var path = thumbPath(root, id)
   if (!path)
     return ""
   var url = typeof fileUrlFn === "function" ? fileUrlFn(path) : ("file://" + path)
   url = String(url || "")
-  if (url.indexOf("file:") !== 0)
+  if (url.indexOf("file://") !== 0 || url.indexOf("..") !== -1)
     return ""
-  var stamp = Date.parse(modified)
+  var base = url.split("?")[0]
+  var expected = typeof fileUrlFn === "function" ? String(fileUrlFn(path) || "") : ("file://" + path)
+  if (!expected || base !== expected)
+    return ""
+  var stamp = Date.parse(String(modified || "").slice(0, MAX_TIME_CHARS))
   if (!isFinite(stamp))
     stamp = Date.now()
-  return url + "?t=" + stamp
+  return base + "?t=" + stamp
 }

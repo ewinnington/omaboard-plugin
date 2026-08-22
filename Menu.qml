@@ -25,10 +25,14 @@ Item {
   property int contentMargin: Style.spacing.panelPadding
 
   function open(payloadJson) {
+    var raw = String(payloadJson || "{}")
     var payload = ({})
-    try { payload = JSON.parse(payloadJson || "{}") } catch (e) { payload = ({}) }
-    if (payload.fontFamily)
-      root.fontFamily = payload.fontFamily
+    if (raw.length <= 4096) {
+      try { payload = JSON.parse(raw) } catch (e) { payload = ({}) }
+    }
+    var family = String(payload.fontFamily || "")
+    if (/^[A-Za-z0-9 _-]{1,64}$/.test(family))
+      root.fontFamily = family
     root.opened = true
     gallery.prepare()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })

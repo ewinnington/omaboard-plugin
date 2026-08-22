@@ -41,7 +41,7 @@ HEAD, not `master`):
 
 ```sh
 git clone https://github.com/ewinnington/omaboard.git \
-  && git -C omaboard checkout --detach f9606aaeaef5251a18c3afc1c6e64b9b4d03d658 \
+  && git -C omaboard checkout --detach 120a9c18712497bdf947d423663ebb8c7d291aa8 \
   && omaboard/bin/build \
   && mkdir -p ~/.local/bin \
   && cp -f omaboard/build/omaboard ~/.local/bin/omaboard \
@@ -155,9 +155,9 @@ when enabled. Review the source before installing.
 - **Sanitizes** board titles and other metadata before display: markup, control
   characters, and bidi overrides are stripped, and every `Text` sink uses
   `Text.PlainText` so AutoText cannot load rich-text resources in the shell.
-- **Executes** `omaboard` (or `~/.local/bin/omaboard`) with `--new` or
-  `--open <id>`. Board ids must be UUIDs; path separators and other names are
-  rejected.
+- **Executes** only an allowlisted absolute binary (`/usr/bin/omaboard`,
+  `/usr/local/bin/omaboard`, or `$HOME/.local/bin/omaboard`) with `--new` or
+  `--open <id>`. PATH is not searched. Board ids must be UUIDs.
 - **Does not** open network connections, request elevated privileges, run
   install hooks, or write Omaboard data.
 - **Does not** change Hyprland config, `shell.json` layout beyond the normal
