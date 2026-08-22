@@ -3,7 +3,7 @@
 **Plugin:** `io.github.ewinnington.omaboard` 1.1.3
 **Companion app:** [omaboard](https://github.com/ewinnington/omaboard) 0.2.3
 **Marketplace:** [HANCORE-linux/omarchy-plugin-marketplace#1255](https://github.com/HANCORE-linux/omarchy-plugin-marketplace/issues/1255)
-**Reviewed tree:** plugin `c20f575f7ff5bc0b22e38525756b2ed286d2631b`, app `120a9c18712497bdf947d423663ebb8c7d291aa8`
+**Reviewed tree:** plugin 1.1.3 on `master` (this document); app `db77f1bba6fd93444f0aeaf66f4d8c1118d97355`
 **Date:** 2026-08-22
 
 This is a source review of the Omarchy bar/menu plugin and the local app whose

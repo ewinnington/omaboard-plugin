@@ -44,7 +44,7 @@ HEAD, not `master`):
 
 ```sh
 git clone https://github.com/ewinnington/omaboard.git \
-  && git -C omaboard checkout --detach 120a9c18712497bdf947d423663ebb8c7d291aa8 \
+  && git -C omaboard checkout --detach db77f1bba6fd93444f0aeaf66f4d8c1118d97355 \
   && omaboard/bin/build \
   && mkdir -p ~/.local/bin \
   && cp -f omaboard/build/omaboard ~/.local/bin/omaboard \
