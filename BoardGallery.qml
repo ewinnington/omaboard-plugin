@@ -2,6 +2,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 import "BoardsModel.js" as BoardsModel
 
@@ -9,9 +10,9 @@ Item {
   id: root
 
   property bool opened: false
-  property color foreground: Color.foreground
-  property color selectedText: Color.accent
-  property color selectedBackground: Util.alpha(Color.foreground, 0.08)
+  property color foreground: Commons.Color.foreground
+  property color selectedText: Commons.Color.accent
+  property color selectedBackground: Util.alpha(Commons.Color.foreground, 0.08)
   property string fontFamily: Style.font.family
   property int cornerRadius: Style.cornerRadius
   property int columns: 3
@@ -360,7 +361,7 @@ Item {
             radius: root.cornerRadius
             color: hasCursor ? root.selectedBackground : "transparent"
             border.width: isNew || hasCursor ? Math.max(1, Style.space(1)) : 0
-            border.color: hasCursor ? root.selectedText : Color.accent
+            border.color: hasCursor ? root.selectedText : Commons.Color.accent
 
             Column {
               anchors.fill: parent

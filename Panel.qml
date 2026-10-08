@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 import qs.Ui
 
 Panel {
@@ -11,7 +12,7 @@ Panel {
   property var anchorItem: null
   property var hostWidget: null
   readonly property var barIdentity: hostWidget || root
-  readonly property color contentForeground: bar ? bar.barForeground : Color.popups.text
+  readonly property color contentForeground: bar ? bar.barForeground : Commons.Color.popups.text
   readonly property string contentFontFamily: bar ? bar.fontFamily : Style.font.family
 
   function open() {
@@ -63,7 +64,7 @@ Panel {
         anchors.fill: parent
         opened: root.opened
         foreground: root.contentForeground
-        selectedText: Color.accent
+        selectedText: Commons.Color.accent
         selectedBackground: Util.alpha(root.contentForeground, 0.08)
         fontFamily: root.contentFontFamily
         onActivated: root.close()
